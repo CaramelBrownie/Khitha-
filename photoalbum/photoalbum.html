@@ -132,11 +132,11 @@
 </head>
 <body>
 
-    <div class="counter" id="discoveryCounter">Fragments: 0 / 44</div>
+    <div class="counter" id="discoveryCounter">Fragments: 0 / 54</div>
 
     <div class="card" id="intro">
         <h1>Memory Gallery</h1>
-        <p style="opacity:0.8; margin-top:10px;">Find all 44 fragments to reveal the final letter.</p>
+        <p style="opacity:0.8; margin-top:10px;">Find all 54 fragments to reveal the final letter.</p>
         <button id="start">Begin Exhibition</button>
     </div>
 
@@ -148,7 +148,7 @@
     </div>
 
     <script>
-        const IMAGE_COUNT = 34;
+        const IMAGE_COUNT = 54;
         const VIDEO_COUNT = 10;
         const TOTAL_MEMORIES = IMAGE_COUNT + VIDEO_COUNT;
         const PHOTO_STAY_DURATION = 15000; 
@@ -163,7 +163,7 @@
             memories.push({ id: `vid-${i}`, type: 'video', src: `videos/video ${idx}.mp4`, message: `Memory #${idx}` });
         }
 
-        const letterText = "You've witnessed every fragment in this collection—all 44 pieces of time. Every slow pan and hidden detail has been uncovered. Thank you for staying until the end. The gallery is now complete.";
+        const letterText = "You've witnessed every fragment in this collection—all 54 pieces of time. Every slow pan and hidden detail has been uncovered. Thank you for staying until the end. The gallery is now complete.";
 
         const revealedMemories = new Set();
         let activePhoto = null;
