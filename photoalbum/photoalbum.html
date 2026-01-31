@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Memory Gallery — Final Polish</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; font-family: 'Georgia', serif; }
+
+        body {
+            height:100vh;
+            background: radial-gradient(circle at center, #2c3e50, #000000);
+            overflow:hidden;
+            color:white;
+        }
+
+        .counter {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 14px;
+            letter-spacing: 1px;
+            z-index: 2000;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            opacity: 0;
+            pointer-events: none;
+            transition: transform 0.3s ease, opacity 1s ease;
+        }
+
+        .card, .letter-card {
+            position:absolute; top:50%; left:50%;
+            transform: translate(-50%,-50%);
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(15px);
+            padding:40px; border-radius:24px; text-align:center;
+            width:90%; max-width:500px;
+            box-shadow: 0 0 40px rgba(0,0,0,0.5);
+            z-index:1000; transition: all 0.8s ease;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .letter-card {
+            background: #fdf5e6; color: #2c3e50; display: none; cursor: pointer; opacity: 0;
+            box-shadow: 0 0 50px rgba(255, 245, 230, 0.4); border: 2px solid #d4af37;
+        }
+
+        .letter-appear { display: block; animation: letterEntrance 1.5s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
+
+        @keyframes letterEntrance {
+            0% { opacity: 0; transform: translate(-50%, -40%) scale(0.8) rotate(-5deg); filter: blur(10px); }
+            100% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0deg); filter: blur(0px); }
+        }
+
+        #typewriter::after { content: '|'; animation: blink 0.7s infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        .card.hidden { opacity: 0; pointer-events: none; }
+
+        button {
+            padding:14px 40px; font-size:14px; letter-spacing: 2px;
+            text-transform: uppercase; font-weight: 700; border:none;
+            border-radius:4px; cursor:pointer; background:#fff; color:#2c3e50;
+            margin-top:24px;
+        }
+
+        .photo {
+            position:fixed; width:65px; height:80px; padding:5px;
+            border-radius:5px; background: #fff;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+            cursor:pointer; z-index:10;
+            transition: top 12s linear, transform 12s linear, opacity 0.3s linear, width 0.5s, height 0.5s;
+            will-change: transform, top;
+        }
+
+        .media-container {
+            width: 100%; aspect-ratio: 1/1;
+            overflow: hidden; position: relative;
+            background: #000;
+        }
+
+        .photo img, .photo video {
+            width: 100%; height: 100%;
+            display: block; filter: blur(8px) grayscale(0.8);
+            transition: filter 1.2s ease;
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            object-fit: cover;
+        }
+
+        .vertical-scroll {
+            object-position: top;
+            animation: portraitPan 12s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite alternate;
+        }
+
+        @keyframes portraitPan {
+            0% { object-position: top; }
+            100% { object-position: bottom; }
+        }
+
+        .inner-message {
+            color: #333; font-size: 14px; margin-top: 15px; text-align: center;
+            font-weight: 600; opacity: 0; filter: blur(5px);
+            transform: translateY(10px);
+            transition: opacity 0.4s ease 0.3s, transform 0.4s ease 0.3s, filter 0.6s ease 0.4s;
+        }
+
+        .photo.enlarged {
+            top:50% !important; left:50% !important;
+            width:320px; height:380px;
+            padding:15px 15px 40px 15px;
+            transform: translate(-50%,-50%) rotate(0deg) !important;
+            z-index:200;
+            transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .photo.enlarged img, .photo.enlarged video { filter: blur(0px) grayscale(0) !important; }
+        .photo.enlarged .inner-message { opacity: 1; filter: blur(0px); transform: translateY(0); }
+
+        .particle {
+            position: fixed; pointer-events: none; z-index: 500;
+            background-size: cover; background-position: center;
+            border: 1px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            transition: transform 1.2s cubic-bezier(0.15,0.9,0.3,1), opacity 1s ease-out;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="counter" id="discoveryCounter">Fragments: 0 / 44</div>
+
+    <div class="card" id="intro">
+        <h1>Memory Gallery</h1>
+        <p style="opacity:0.8; margin-top:10px;">Find all 44 fragments to reveal the final letter.</p>
+        <button id="start">Begin Exhibition</button>
+    </div>
+
+    <div class="letter-card" id="finalLetter">
+        <h2 id="letterTitle" style="margin-bottom:15px; border-bottom: 1px solid #d4af37; padding-bottom: 5px; opacity:0;">Dearest Khitha,</h2>
+        <p id="typewriter" style="line-height:1.6; font-style:italic; min-height: 80px;"></p>
+        <p id="letterSign" style="margin-top:20px; font-weight:bold; letter-spacing: 1px; opacity:0;">— The Curator</p>
+        <p id="letterHint" style="font-size: 10px; opacity: 0; margin-top: 15px;">(Click to shatter this letter)</p>
+    </div>
+
+    <script>
+        const IMAGE_COUNT = 34;
+        const VIDEO_COUNT = 10;
+        const TOTAL_MEMORIES = IMAGE_COUNT + VIDEO_COUNT;
+        const PHOTO_STAY_DURATION = 15000; 
+        const memories = [];
+
+        for (let i = 1; i <= IMAGE_COUNT; i++) {
+            const idx = i.toString().padStart(2, '0');
+            memories.push({ id: `img-${i}`, type: 'image', src: `images/image ${idx}.jpg`, message: `Moment #${idx}` });
+        }
+        for (let i = 1; i <= VIDEO_COUNT; i++) {
+            const idx = i.toString().padStart(2, '0');
+            memories.push({ id: `vid-${i}`, type: 'video', src: `videos/video ${idx}.mp4`, message: `Memory #${idx}` });
+        }
+
+        const letterText = "You've witnessed every fragment in this collection—all 44 pieces of time. Every slow pan and hidden detail has been uncovered. Thank you for staying until the end. The gallery is now complete.";
+
+        const revealedMemories = new Set();
+        let activePhoto = null;
+        let activeTimeout = null;
+        let letterUnlocked = false;
+
+        const bgMusic = new Audio('audio/song.mp3');
+        bgMusic.loop = true;
+        const popSound = new Audio('audio/sound_effects/pop.mp3');
+        const burstSound = new Audio('audio/sound_effects/busrt.mp3');
+
+        document.getElementById('start').addEventListener('click', () => {
+            bgMusic.play().catch(() => {});
+            document.getElementById('intro').classList.add('hidden');
+            document.getElementById('discoveryCounter').style.opacity = '1';
+            setTimeout(() => {
+                document.getElementById('intro').style.display = 'none';
+                setInterval(spawnMemory, 1100);
+            }, 800);
+        });
+
+        function updateCounter() {
+            const counterEl = document.getElementById('discoveryCounter');
+            counterEl.textContent = `Fragments: ${revealedMemories.size} / ${TOTAL_MEMORIES}`;
+            counterEl.style.transform = 'scale(1.1)';
+            setTimeout(() => counterEl.style.transform = 'scale(1)', 300);
+            
+            if (revealedMemories.size === TOTAL_MEMORIES) {
+                counterEl.style.opacity = '0';
+            }
+        }
+
+        function spawnMemory() {
+            const data = memories[Math.floor(Math.random() * memories.length)];
+            const el = document.createElement('div');
+            el.className = 'photo';
+            el.dataset.id = data.id;
+            el.style.left = (Math.random() * 80 + 10) + 'vw';
+            el.style.top = '-30vh';
+            el.style.transform = `rotate(${Math.random() * 80 - 40}deg)`;
+
+            const container = document.createElement('div');
+            container.className = 'media-container';
+
+            const media = document.createElement(data.type === 'video' ? 'video' : 'img');
+            media.src = data.src;
+            if (data.type === 'video') { 
+                media.muted = true; 
+                media.autoplay = true;
+                media.loop = true;
+                media.setAttribute('playsinline', ''); 
+            }
+            
+            if (revealedMemories.has(data.id)) media.style.filter = "blur(0px) grayscale(0)";
+
+            const msg = document.createElement('div');
+            msg.className = 'inner-message';
+            msg.textContent = data.message;
+
+            container.appendChild(media);
+            el.appendChild(container);
+            el.appendChild(msg);
+
+            el.addEventListener('click', (ev) => {
+                ev.stopPropagation();
+                if (el.classList.contains('enlarged')) return;
+                try { popSound.currentTime = 0; popSound.play(); } catch(e){}
+                activateMemory(el, data);
+            });
+
+            document.body.appendChild(el);
+
+            if (data.type === 'video') {
+                media.play().catch(() => {});
+            }
+
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    el.style.top = '120vh';
+                    el.style.transform = `rotate(${Math.random() * 270 - 135}deg)`;
+                }, 50);
+            });
+            setTimeout(() => { if (!el.classList.contains('enlarged') && el.parentElement) el.remove(); }, 15000);
+        }
+
+        function activateMemory(el, data) {
+            if (activePhoto && activePhoto !== el) burst(activePhoto);
+            
+            if (!revealedMemories.has(data.id)) {
+                revealedMemories.add(data.id);
+                updateCounter();
+            }
+            
+            document.querySelectorAll(`.photo[data-id="${data.id}"] img, .photo[data-id="${data.id}"] video`).forEach(m => {
+                m.style.filter = "blur(0px) grayscale(0)";
+            });
+
+            clearTimeout(activeTimeout);
+            activePhoto = el;
+            el.classList.add('enlarged');
+
+            const media = el.querySelector('img, video');
+            
+            const handleSizing = () => {
+                if (data.type === 'image') {
+                    if (media.naturalHeight > media.naturalWidth) {
+                        media.classList.add('vertical-scroll');
+                    } else {
+                        media.style.objectPosition = 'center';
+                        media.classList.remove('vertical-scroll');
+                    }
+                }
+            };
+
+            if (data.type === 'video') {
+                media.muted = false; 
+                media.loop = false;
+                media.currentTime = 0; 
+                media.play();
+                fadeAudio(bgMusic, 0.2); 
+                media.onended = () => burst(el);
+            } else {
+                if (media.complete) handleSizing(); else media.onload = handleSizing;
+                activeTimeout = setTimeout(() => burst(el), PHOTO_STAY_DURATION);
+            }
+
+            const manualBurst = (ev) => { ev.stopPropagation(); burst(el); };
+            setTimeout(() => el.addEventListener('click', manualBurst), 200);
+        }
+
+        function burst(el) {
+            if (!el || el.style.opacity === '0') return;
+            clearTimeout(activeTimeout);
+            const video = el.querySelector('video');
+            const img = el.querySelector('img');
+            let mediaSrc = img ? img.src : '';
+            
+            if (video) { video.onended = null; video.pause(); fadeAudio(bgMusic, 1.0); }
+            try { burstSound.currentTime = 0; burstSound.play(); } catch(e) {}
+            
+            const rect = el.getBoundingClientRect();
+            el.style.opacity = '0'; el.style.pointerEvents = 'none';
+            createBurst(rect.left + rect.width / 2, rect.top + rect.height / 2, mediaSrc);
+            
+            setTimeout(() => { 
+                if (el.parentElement) el.remove(); 
+                
+                if (revealedMemories.size === TOTAL_MEMORIES && !letterUnlocked) {
+                    letterUnlocked = true;
+                    showLetter();
+                }
+            }, 600);
+            
+            if (activePhoto === el) activePhoto = null;
+        }
+
+        function showLetter() {
+            const letter = document.getElementById('finalLetter');
+            setTimeout(() => {
+                letter.classList.add('letter-appear');
+                setTimeout(typeWriter, 1500);
+                letter.addEventListener('click', () => {
+                    const rect = letter.getBoundingClientRect();
+                    createBurst(rect.left + rect.width / 2, rect.top + rect.height / 2, 'none', true);
+                    letter.style.display = 'none';
+                    try { burstSound.currentTime = 0; burstSound.play(); } catch(e) {}
+                });
+            }, 1000);
+        }
+
+        function typeWriter() {
+            const title = document.getElementById('letterTitle');
+            const textEl = document.getElementById('typewriter');
+            const sign = document.getElementById('letterSign');
+            const hint = document.getElementById('letterHint');
+            title.style.opacity = "1"; title.style.transition = "opacity 1s";
+            let i = 0;
+            function type() {
+                if (i < letterText.length) {
+                    textEl.textContent += letterText.charAt(i); i++;
+                    setTimeout(type, 40);
+                } else {
+                    sign.style.opacity = "1"; sign.style.transition = "opacity 1s";
+                    hint.style.opacity = "0.5"; hint.style.transition = "opacity 1s";
+                }
+            }
+            setTimeout(type, 800);
+        }
+
+        function fadeAudio(audio, targetVol) {
+            let currentVol = audio.volume;
+            const interval = setInterval(() => {
+                if (Math.abs(currentVol - targetVol) < 0.05) {
+                    audio.volume = targetVol; clearInterval(interval);
+                } else {
+                    currentVol += (targetVol > currentVol ? 0.05 : -0.05);
+                    audio.volume = Math.max(0, Math.min(1, currentVol));
+                }
+            }, 50);
+        }
+
+        function createBurst(centerX, centerY, imageSrc, isLetter = false) {
+            const count = isLetter ? 40 : 15;
+            for (let i=0; i<count; i++){
+                const part = document.createElement('div');
+                part.className = 'particle';
+                const size = Math.random() * 30 + 20; 
+                part.style.width = size + 'px'; part.style.height = (size * 1.2) + 'px';
+                part.style.left = centerX + 'px'; part.style.top  = centerY + 'px';
+                if (isLetter) { part.style.background = '#fdf5e6'; part.style.border = '1px solid #d4af37'; }
+                else if (imageSrc) { part.style.backgroundImage = `url("${imageSrc}")`; }
+                else { part.style.background = "#fff"; }
+                
+                part.style.transform = `translate(-50%,-50%) rotate(${Math.random() * 360}deg)`;
+                document.body.appendChild(part);
+                setTimeout(()=> {
+                    const angle = Math.random() * Math.PI * 2;
+                    const dist = 250 + Math.random() * 350;
+                    const finalRotate = Math.random() * 720 - 360;
+                    part.style.transform = `translate(calc(-50% + ${Math.cos(angle)*dist}px), calc(-50% + ${Math.sin(angle)*dist}px)) rotate(${finalRotate}deg) scale(0)`;
+                    part.style.opacity = '0';
+                }, 20);
+                setTimeout(()=> part.remove(), 1200);
+            }
+        }
+    </script>
+</body>
+</html>
