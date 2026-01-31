@@ -148,16 +148,20 @@
     </div>
 
     <script>
-        const IMAGE_COUNT = 54;
+        // UPDATED COUNTS
+        const IMAGE_COUNT = 44; 
         const VIDEO_COUNT = 10;
-        const TOTAL_MEMORIES = IMAGE_COUNT + VIDEO_COUNT;
+        const TOTAL_MEMORIES = IMAGE_COUNT + VIDEO_COUNT; // This now equals 54
+        
         const PHOTO_STAY_DURATION = 15000; 
         const memories = [];
 
+        // Build Image List
         for (let i = 1; i <= IMAGE_COUNT; i++) {
             const idx = i.toString().padStart(2, '0');
             memories.push({ id: `img-${i}`, type: 'image', src: `images/image ${idx}.jpg`, message: `Moment #${idx}` });
         }
+        // Build Video List
         for (let i = 1; i <= VIDEO_COUNT; i++) {
             const idx = i.toString().padStart(2, '0');
             memories.push({ id: `vid-${i}`, type: 'video', src: `videos/video ${idx}.mp4`, message: `Memory #${idx}` });
